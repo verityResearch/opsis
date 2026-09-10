@@ -1,0 +1,33 @@
+{
+  "format": "ROAMV",
+  "version": "0.1.0-draft.1",
+  "id": "reference-linked",
+  "revision": "r1",
+  "time_unit": "second",
+  "source_mode": "linked",
+  "required_extensions": [],
+  "title": "Known source deliberately omitted",
+  "assets": {
+    "source": {
+      "role": "source", "origin": "generated", "media_type": "video/mp4",
+      "bytes": "17320",
+      "sha256": "93fdfaef97e2be3d097bb62eb4bc3b183f0f750cc05c977d872c5c694ad6d8d7",
+      "location": {"unavailable": "Source omitted intentionally; its identity matches the other reference packages."}
+    }
+  },
+  "streams": {
+    "video": {
+      "asset": "source", "kind": "video", "codec": "h264",
+      "locator": {"kind": "container_track", "index": 0, "track_id": "0x1"},
+      "time_base": {"n": "1", "d": "16384"},
+      "dimensions": {"width": 160, "height": 90},
+      "acquisition": "continuous", "process": "index"
+    }
+  },
+  "processes": {
+    "index": {
+      "name": "ffprobe", "version": "6.1.1", "inputs": ["source"],
+      "parameters": {"stream_locator": "ffprobe stream index and id"}
+    }
+  }
+}

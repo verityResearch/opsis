@@ -1,0 +1,11 @@
+ROAMV 0.1.0-draft.1 sheet overview
+package reference-summary revision r1
+role overview span whole [0/1,1/1) seconds
+layout 2x1 tile 160x90 gap 2 background [90,90,96] order row_major
+selection explicit status satisfied tiles 2 budget 2
+tile 0 sample first stream video time 0/1 basis mapped uncertainty 0/1 content [0,0,160,90] source null
+tile 1 sample last stream video time 3/4 basis mapped uncertainty 0/1 content [0,0,160,90] source null
+coverage video-preview stream video analysis not_run max_selected_gap 3/4
+issue not_analyzed "No activity detector was run; selected frames are an explicit preview." interval [0/1,1/1)
+issue color_unspecified "PNG color conversion used the decoder default."
+issue audio_not_shown "The source contains audio; this sheet presents video frames only."

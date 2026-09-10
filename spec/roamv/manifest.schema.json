@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ROAMV 0.1.0-draft.1 sealed core manifest",
+  "description": "Structural constraints only. FORMAT.md also defines semantic and integrity requirements.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "version", "id", "revision", "time_unit", "source_mode", "required_extensions", "assets", "streams"],
+  "properties": {
+    "format": {"const": "ROAMV"},
+    "version": {"const": "0.1.0-draft.1"},
+    "id": {"$ref": "#/$defs/id"},
+    "revision": {"$ref": "#/$defs/id"},
+    "time_unit": {"const": "second"},
+    "source_mode": {"enum": ["embedded", "linked"]},
+    "title": {"type": "string"},
+    "required_extensions": {"$ref": "#/$defs/ids"},
+    "extensions": {"$ref": "#/$defs/extensions"},
+    "entrypoints": {"$ref": "#/$defs/ids"},
+    "assets": {
+      "type": "object", "minProperties": 1,
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/asset"}
+    },
+    "streams": {
+      "type": "object", "minProperties": 1,
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/stream"}
+    },
+    "time_maps": {
+      "type": "object", "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/timeMap"}
+    },
+    "samples": {
+      "type": "object", "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/sample"}
+    },
+    "spans": {
+      "type": "object", "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/span"}
+    },
+    "sheets": {
+      "type": "object", "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/sheet"}
+    },
+    "coverage": {
+      "type": "object", "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/coverage"}
+    },
+    "annotations": {
+      "type": "object", "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/annotation"}
+    },
+    "processes": {
+      "type": "object", "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {"$ref": "#/$defs/process"}
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string", "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*(?![\\s\\S])"
+    },
+    "ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "integerString": {"type": "string", "pattern": "^(?:0|-?[1-9][0-9]*)(?![\\s\\S])"},
+    "unsignedString": {"type": "string", "pattern": "^(?:0|[1-9][0-9]*)(?![\\s\\S])"},
+    "positiveString": {"type": "string", "pattern": "^[1-9][0-9]*(?![\\s\\S])"},
+    "dimension": {"type": "integer", "minimum": 1, "maximum": 2147483647},
+    "index": {"type": "integer", "minimum": 0, "maximum": 2147483647},
+    "rational": {
+      "type": "object", "additionalProperties": false, "required": ["n", "d"],
+      "properties": {"n": {"$ref": "#/$defs/integerString"}, "d": {"$ref": "#/$defs/positiveString"}}
+    },
+    "nonnegativeRational": {
+      "allOf": [{"$ref": "#/$defs/rational"}, {"properties": {"n": {"$ref": "#/$defs/unsignedString"}}}]
+    },
+    "positiveRational": {
+      "allOf": [{"$ref": "#/$defs/rational"}, {"properties": {"n": {"$ref": "#/$defs/positiveString"}}}]
+    },
+    "nullableTime": {"oneOf": [{"$ref": "#/$defs/rational"}, {"type": "null"}]},
+    "uncertainty": {"oneOf": [{"$ref": "#/$defs/nonnegativeRational"}, {"type": "null"}]},
+    "nullableInteger": {"oneOf": [{"$ref": "#/$defs/integerString"}, {"type": "null"}]},
+    "nullableId": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+    "extensions": {"type": "object", "propertyNames": {"$ref": "#/$defs/id"}},
+    "dimensions": {
+      "type": "object", "additionalProperties": false, "required": ["width", "height"],
+      "properties": {"width": {"$ref": "#/$defs/dimension"}, "height": {"$ref": "#/$defs/dimension"}}
+    },
+    "interval": {
+      "type": "object", "additionalProperties": false, "required": ["start", "end"],
+      "properties": {"start": {"$ref": "#/$defs/rational"}, "end": {"$ref": "#/$defs/rational"}}
+    },
+    "rect": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "prefixItems": [{"$ref": "#/$defs/index"}, {"$ref": "#/$defs/index"}, {"$ref": "#/$defs/dimension"}, {"$ref": "#/$defs/dimension"}]
+    },
+    "issue": {
+      "type": "object", "additionalProperties": false, "required": ["code", "detail"],
+      "properties": {
+        "code": {"$ref": "#/$defs/id"}, "detail": {"type": "string", "minLength": 1},
+        "interval": {"$ref": "#/$defs/interval"}
+      }
+    },
+    "issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}},
+    "asset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "media_type", "bytes", "sha256", "location"],
+      "properties": {
+        "role": {"enum": ["source", "derived"]},
+        "media_type": {"type": "string", "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*(?![\\s\\S])"},
+        "bytes": {"$ref": "#/$defs/unsignedString"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+        "location": {
+          "oneOf": [
+            {"type": "object", "additionalProperties": false, "required": ["path"], "properties": {"path": {"type": "string", "minLength": 1}}},
+            {"type": "object", "additionalProperties": false, "required": ["uri"], "properties": {"uri": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s\\u0000-\\u001f\\u007f]*(?![\\s\\S])"}}},
+            {"type": "object", "additionalProperties": false, "required": ["unavailable"], "properties": {"unavailable": {"type": "string", "minLength": 1}}}
+          ]
+        },
+        "origin": {"enum": ["recorded", "screen_capture", "generated", "imported", "unknown"]},
+        "process": {"$ref": "#/$defs/id"},
+        "dimensions": {"$ref": "#/$defs/dimensions"},
+        "color_space": {"type": "string", "minLength": 1},
+        "extensions": {"$ref": "#/$defs/extensions"}
+      },
+      "allOf": [
+        {"if": {"properties": {"role": {"const": "source"}}}, "then": {"required": ["origin"]}},
+        {"if": {"properties": {"role": {"const": "derived"}}}, "then": {"required": ["process"]}},
+        {"if": {"properties": {"media_type": {"pattern": "^image/"}}}, "then": {"required": ["dimensions", "color_space"]}}
+      ]
+    },
+    "stream": {
+      "type": "object", "additionalProperties": false,
+      "required": ["asset", "kind", "locator", "time_base", "acquisition", "process"],
+      "properties": {
+        "asset": {"$ref": "#/$defs/id"},
+        "kind": {"enum": ["video", "audio", "image", "data"]},
+        "locator": {
+          "oneOf": [
+            {
+              "type": "object", "additionalProperties": false, "required": ["kind", "index", "track_id"],
+              "properties": {"kind": {"const": "container_track"}, "index": {"$ref": "#/$defs/index"}, "track_id": {"type": ["string", "null"]}}
+            },
+            {"type": "object", "additionalProperties": false, "required": ["kind"], "properties": {"kind": {"const": "whole_asset"}}}
+          ]
+        },
+        "time_base": {"oneOf": [{"$ref": "#/$defs/positiveRational"}, {"type": "null"}]},
+        "acquisition": {"enum": ["continuous", "sparse", "unknown"]},
+        "process": {"$ref": "#/$defs/id"},
+        "codec": {"type": "string", "minLength": 1},
+        "dimensions": {"$ref": "#/$defs/dimensions"},
+        "sample_rate": {"$ref": "#/$defs/dimension"},
+        "channels": {"$ref": "#/$defs/dimension"},
+        "extensions": {"$ref": "#/$defs/extensions"}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"enum": ["video", "image"]}}}, "then": {"required": ["dimensions"]}},
+        {"if": {"properties": {"kind": {"const": "audio"}}}, "then": {"required": ["sample_rate", "channels"]}}
+      ]
+    },
+    "timeMap": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stream", "epoch", "start_pts", "end_pts", "rate", "offset", "uncertainty", "process"],
+      "properties": {
+        "stream": {"$ref": "#/$defs/id"}, "epoch": {"$ref": "#/$defs/id"},
+        "start_pts": {"$ref": "#/$defs/nullableInteger"}, "end_pts": {"$ref": "#/$defs/nullableInteger"},
+        "rate": {"$ref": "#/$defs/positiveRational"}, "offset": {"$ref": "#/$defs/rational"},
+        "uncertainty": {"$ref": "#/$defs/uncertainty"}, "process": {"$ref": "#/$defs/id"},
+        "extensions": {"$ref": "#/$defs/extensions"}
+      }
+    },
+    "native": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "epoch", "ordinal", "pts"],
+          "properties": {"kind": {"const": "frame"}, "epoch": {"$ref": "#/$defs/id"}, "ordinal": {"$ref": "#/$defs/unsignedString"}, "pts": {"$ref": "#/$defs/nullableInteger"}}
+        },
+        {"type": "object", "additionalProperties": false, "required": ["kind"], "properties": {"kind": {"const": "image"}}},
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "epoch", "index", "count", "pts"],
+          "properties": {"kind": {"const": "audio"}, "epoch": {"$ref": "#/$defs/id"}, "index": {"$ref": "#/$defs/unsignedString"}, "count": {"$ref": "#/$defs/positiveString"}, "pts": {"$ref": "#/$defs/nullableInteger"}}
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "epoch", "index", "pts"],
+          "properties": {"kind": {"const": "record"}, "epoch": {"$ref": "#/$defs/id"}, "index": {"$ref": "#/$defs/unsignedString"}, "pts": {"$ref": "#/$defs/nullableInteger"}}
+        }
+      ]
+    },
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stream", "native", "time", "time_basis", "uncertainty", "process"],
+      "properties": {
+        "stream": {"$ref": "#/$defs/id"}, "native": {"$ref": "#/$defs/native"},
+        "time": {"$ref": "#/$defs/nullableTime"},
+        "time_basis": {"enum": ["mapped", "provided", "unknown"]},
+        "time_map": {"$ref": "#/$defs/nullableId"}, "uncertainty": {"$ref": "#/$defs/uncertainty"},
+        "process": {"$ref": "#/$defs/id"}, "image": {"$ref": "#/$defs/id"},
+        "issues": {"$ref": "#/$defs/issues"}, "extensions": {"$ref": "#/$defs/extensions"}
+      },
+      "allOf": [
+        {"if": {"properties": {"time_basis": {"const": "unknown"}}}, "then": {"properties": {"time": {"type": "null"}, "uncertainty": {"type": "null"}, "time_map": {"type": "null"}}}},
+        {"if": {"properties": {"time_basis": {"const": "provided"}}}, "then": {"properties": {"time": {"$ref": "#/$defs/rational"}, "time_map": {"type": "null"}}}},
+        {"if": {"properties": {"time_basis": {"const": "mapped"}}}, "then": {"required": ["time_map"], "properties": {"time": {"$ref": "#/$defs/rational"}, "time_map": {"$ref": "#/$defs/id"}}}}
+      ]
+    },
+    "span": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "start", "end", "streams", "process"],
+      "properties": {
+        "kind": {"enum": ["segment", "shot", "chapter", "event"]},
+        "start": {"$ref": "#/$defs/rational"}, "end": {"$ref": "#/$defs/rational"},
+        "streams": {"allOf": [{"$ref": "#/$defs/ids"}, {"minItems": 1}]},
+        "children": {"$ref": "#/$defs/ids"}, "related": {"$ref": "#/$defs/ids"},
+        "label": {"type": "string"}, "process": {"$ref": "#/$defs/id"},
+        "extensions": {"$ref": "#/$defs/extensions"}
+      }
+    },
+    "layout": {
+      "type": "object", "additionalProperties": false,
+      "required": ["columns", "rows", "tile_width", "tile_height", "gap", "background"],
+      "properties": {
+        "columns": {"$ref": "#/$defs/dimension"}, "rows": {"$ref": "#/$defs/dimension"},
+        "tile_width": {"$ref": "#/$defs/dimension"}, "tile_height": {"$ref": "#/$defs/dimension"},
+        "gap": {"$ref": "#/$defs/index"},
+        "background": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "integer", "minimum": 0, "maximum": 255}}
+      }
+    },
+    "tile": {
+      "type": "object", "additionalProperties": false, "required": ["cell", "sample", "content_rect", "source_rect"],
+      "properties": {
+        "cell": {"$ref": "#/$defs/index"}, "sample": {"$ref": "#/$defs/id"},
+        "content_rect": {"$ref": "#/$defs/rect"},
+        "source_rect": {"oneOf": [{"$ref": "#/$defs/rect"}, {"type": "null"}]}
+      }
+    },
+    "selection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["method", "parameters", "process", "tile_budget", "status", "unmet", "coverage"],
+      "properties": {
+        "method": {"$ref": "#/$defs/id"}, "parameters": {"type": "object"},
+        "process": {"$ref": "#/$defs/id"}, "tile_budget": {"$ref": "#/$defs/dimension"},
+        "status": {"enum": ["satisfied", "insufficient"]},
+        "unmet": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "coverage": {"allOf": [{"$ref": "#/$defs/ids"}, {"minItems": 1}]}
+      },
+      "allOf": [
+        {"if": {"properties": {"status": {"const": "satisfied"}}}, "then": {"properties": {"unmet": {"maxItems": 0}}}},
+        {"if": {"properties": {"status": {"const": "insufficient"}}}, "then": {"properties": {"unmet": {"minItems": 1}}}}
+      ]
+    },
+    "sheet": {
+      "type": "object", "additionalProperties": false,
+      "required": ["span", "image", "text", "role", "layout", "tiles", "selection", "render_process", "issues"],
+      "properties": {
+        "span": {"$ref": "#/$defs/id"}, "image": {"$ref": "#/$defs/id"}, "text": {"$ref": "#/$defs/id"},
+        "role": {"enum": ["sequence", "overview"]}, "layout": {"$ref": "#/$defs/layout"},
+        "tiles": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/tile"}},
+        "selection": {"$ref": "#/$defs/selection"}, "render_process": {"$ref": "#/$defs/id"},
+        "issues": {"$ref": "#/$defs/issues"}, "extensions": {"$ref": "#/$defs/extensions"}
+      }
+    },
+    "coverage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["span", "stream", "analysis", "analysis_process", "analyzed_samples", "analyzed_intervals", "selected_samples", "max_selected_gap", "issues"],
+      "properties": {
+        "span": {"$ref": "#/$defs/id"}, "stream": {"$ref": "#/$defs/id"},
+        "analysis": {"enum": ["not_run", "sampled", "all_samples"]},
+        "analysis_process": {"$ref": "#/$defs/nullableId"},
+        "analyzed_samples": {"$ref": "#/$defs/ids"},
+        "analyzed_intervals": {"type": "array", "items": {"$ref": "#/$defs/interval"}},
+        "selected_samples": {"$ref": "#/$defs/ids"},
+        "max_selected_gap": {"$ref": "#/$defs/nonnegativeRational"},
+        "issues": {"$ref": "#/$defs/issues"}, "extensions": {"$ref": "#/$defs/extensions"}
+      },
+      "allOf": [
+        {"if": {"properties": {"analysis": {"const": "not_run"}}}, "then": {"properties": {"analysis_process": {"type": "null"}, "analyzed_samples": {"maxItems": 0}, "analyzed_intervals": {"maxItems": 0}}}},
+        {"if": {"properties": {"analysis": {"const": "sampled"}}}, "then": {"properties": {"analysis_process": {"$ref": "#/$defs/id"}, "analyzed_samples": {"minItems": 1}, "analyzed_intervals": {"maxItems": 0}}}},
+        {"if": {"properties": {"analysis": {"const": "all_samples"}}}, "then": {"properties": {"analysis_process": {"$ref": "#/$defs/id"}, "analyzed_samples": {"maxItems": 0}, "analyzed_intervals": {"minItems": 1}}}}
+      ]
+    },
+    "target": {
+      "type": "object", "additionalProperties": false, "required": ["type", "id"],
+      "properties": {
+        "type": {"enum": ["asset", "stream", "sample", "span"]}, "id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "annotation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "origin", "targets", "process"],
+      "properties": {
+        "kind": {"enum": ["caption", "transcript", "event", "measurement", "note"]},
+        "origin": {"enum": ["provided", "human", "algorithmic", "instrumented"]},
+        "targets": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/target"}},
+        "process": {"$ref": "#/$defs/id"}, "text": {"type": "string"}, "data": {},
+        "language": {"type": "string", "minLength": 1}, "speaker": {"type": "string"},
+        "score": {
+          "type": "object", "additionalProperties": false, "required": ["value", "meaning"],
+          "properties": {"value": {"type": "number"}, "meaning": {"type": "string", "minLength": 1}}
+        },
+        "extensions": {"$ref": "#/$defs/extensions"}
+      },
+      "anyOf": [{"required": ["text"]}, {"required": ["data"]}]
+    },
+    "process": {
+      "type": "object", "additionalProperties": false, "required": ["name", "version", "inputs", "parameters"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1}, "version": {"type": "string", "minLength": 1},
+        "inputs": {"$ref": "#/$defs/ids"}, "parameters": {"type": "object"},
+        "description": {"type": "string"}, "extensions": {"$ref": "#/$defs/extensions"}
+      }
+    }
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "format": "ROAMV",
+  "version": "0.1.0-draft.1",
+  "id": "reference-summary",
+  "revision": "r1",
+  "time_unit": "second",
+  "source_mode": "embedded",
+  "required_extensions": [],
+  "title": "Two selected frames with retained source audio",
+  "entrypoints": ["whole"],
+  "assets": {
+    "source": {
+      "role": "source", "origin": "generated", "media_type": "video/mp4",
+      "bytes": "17320",
+      "sha256": "93fdfaef97e2be3d097bb62eb4bc3b183f0f750cc05c977d872c5c694ad6d8d7",
+      "location": {"path": "media/source.mp4"}, "process": "generate"
+    },
+    "first-image": {
+      "role": "derived", "media_type": "image/png", "process": "extract",
+      "bytes": "9542",
+      "sha256": "a322e43ab711dd872be770fe40bb141f10ddc4dda08de749b0ccafe47501b081",
+      "location": {"path": "images/frame-1.png"},
+      "dimensions": {"width": 160, "height": 90}, "color_space": "unspecified"
+    },
+    "last-image": {
+      "role": "derived", "media_type": "image/png", "process": "extract",
+      "bytes": "12493",
+      "sha256": "8bcf098a6ee533a3a9f23a108690d1d1aa93f323dda70ae4f82b6725691734fe",
+      "location": {"path": "images/frame-2.png"},
+      "dimensions": {"width": 160, "height": 90}, "color_space": "unspecified"
+    },
+    "sheet-image": {
+      "role": "derived", "media_type": "image/png", "process": "render",
+      "bytes": "21301",
+      "sha256": "04b66f0168ff303123f04884c8e79dd7be10bad10c8b7848ab6674d04b1392e1",
+      "location": {"path": "images/overview.png"},
+      "dimensions": {"width": 322, "height": 90}, "color_space": "unspecified"
+    },
+    "sheet-text": {
+      "role": "derived", "media_type": "text/plain", "process": "text",
+      "bytes": "791",
+      "sha256": "92660bd0d1be55a05d6316acef3b7d79f2b34ee079db872c5fdcd01a8909d414",
+      "location": {"path": "text/overview.txt"}
+    }
+  },
+  "streams": {
+    "video": {
+      "asset": "source", "kind": "video", "codec": "h264",
+      "locator": {"kind": "container_track", "index": 0, "track_id": "0x1"},
+      "time_base": {"n": "1", "d": "16384"},
+      "dimensions": {"width": 160, "height": 90},
+      "acquisition": "continuous", "process": "index"
+    },
+    "audio": {
+      "asset": "source", "kind": "audio", "codec": "aac",
+      "locator": {"kind": "container_track", "index": 1, "track_id": "0x2"},
+      "time_base": {"n": "1", "d": "48000"},
+      "sample_rate": 48000, "channels": 1,
+      "acquisition": "continuous", "process": "index"
+    }
+  },
+  "time_maps": {
+    "video-time": {
+      "stream": "video", "epoch": "0", "start_pts": "0", "end_pts": "16384",
+      "rate": {"n": "1", "d": "1"}, "offset": {"n": "0", "d": "1"},
+      "uncertainty": {"n": "0", "d": "1"}, "process": "index"
+    },
+    "audio-time": {
+      "stream": "audio", "epoch": "0", "start_pts": "0", "end_pts": "48000",
+      "rate": {"n": "1", "d": "1"}, "offset": {"n": "0", "d": "1"},
+      "uncertainty": {"n": "0", "d": "1"}, "process": "index"
+    }
+  },
+  "samples": {
+    "first": {
+      "stream": "video", "native": {"kind": "frame", "epoch": "0", "ordinal": "0", "pts": "0"},
+      "time": {"n": "0", "d": "1"}, "time_basis": "mapped", "time_map": "video-time",
+      "uncertainty": {"n": "0", "d": "1"}, "process": "index", "image": "first-image"
+    },
+    "last": {
+      "stream": "video", "native": {"kind": "frame", "epoch": "0", "ordinal": "3", "pts": "12288"},
+      "time": {"n": "3", "d": "4"}, "time_basis": "mapped", "time_map": "video-time",
+      "uncertainty": {"n": "0", "d": "1"}, "process": "index", "image": "last-image"
+    },
+    "tone-window": {
+      "stream": "audio", "native": {"kind": "audio", "epoch": "0", "index": "0", "count": "48000", "pts": "0"},
+      "time": {"n": "0", "d": "1"}, "time_basis": "mapped", "time_map": "audio-time",
+      "uncertainty": {"n": "0", "d": "1"}, "process": "index"
+    }
+  },
+  "spans": {
+    "whole": {
+      "kind": "segment", "start": {"n": "0", "d": "1"}, "end": {"n": "1", "d": "1"},
+      "streams": ["video", "audio"], "process": "describe", "label": "Reference clip"
+    }
+  },
+  "sheets": {
+    "overview": {
+      "span": "whole", "image": "sheet-image", "text": "sheet-text", "role": "overview",
+      "layout": {"columns": 2, "rows": 1, "tile_width": 160, "tile_height": 90, "gap": 2, "background": [90, 90, 96]},
+      "tiles": [
+        {"cell": 0, "sample": "first", "content_rect": [0, 0, 160, 90], "source_rect": null},
+        {"cell": 1, "sample": "last", "content_rect": [0, 0, 160, 90], "source_rect": null}
+      ],
+      "selection": {
+        "method": "explicit", "parameters": {"presentation_ordinals": ["0", "3"]},
+        "process": "select", "tile_budget": 2, "status": "satisfied", "unmet": [], "coverage": ["video-preview"]
+      },
+      "render_process": "render",
+      "issues": [
+        {"code": "color_unspecified", "detail": "PNG color conversion used the decoder default."},
+        {"code": "audio_not_shown", "detail": "The source contains audio; this sheet presents video frames only."}
+      ]
+    }
+  },
+  "coverage": {
+    "video-preview": {
+      "span": "whole", "stream": "video", "analysis": "not_run", "analysis_process": null,
+      "analyzed_samples": [], "analyzed_intervals": [], "selected_samples": ["first", "last"],
+      "max_selected_gap": {"n": "3", "d": "4"},
+      "issues": [{
+        "code": "not_analyzed", "detail": "No activity detector was run; selected frames are an explicit preview.",
+        "interval": {"start": {"n": "0", "d": "1"}, "end": {"n": "1", "d": "1"}}
+      }]
+    }
+  },
+  "annotations": {
+    "tone": {
+      "kind": "note", "origin": "instrumented", "targets": [{"type": "sample", "id": "tone-window"}],
+      "process": "generate", "text": "Generated 440 Hz reference tone.", "language": "en",
+      "data": {"frequency_hz": 440}
+    }
+  },
+  "processes": {
+    "generate": {
+      "name": "ffmpeg", "version": "6.1.1", "inputs": [],
+      "parameters": {
+        "video_source": "testsrc2=size=160x90:rate=4:duration=1",
+        "audio_source": "sine=frequency=440:sample_rate=48000:duration=1",
+        "video_encoder": "libx264", "pixel_format": "yuv420p", "preset": "medium",
+        "video_threads": 1, "gop": 4, "b_frames": 2, "x264_params": "b-adapt=0:scenecut=0",
+        "audio_encoder": "aac", "audio_bitrate": "64k", "duration_seconds": 1,
+        "movflags": "+faststart", "map_metadata": -1
+      }
+    },
+    "index": {
+      "name": "ffprobe", "version": "6.1.1", "inputs": ["source"],
+      "parameters": {
+        "stream_locator": "ffprobe stream index and id",
+        "video_order": "decoded presentation order",
+        "audio_index_origin": "first decoded audio sample after decoder priming skip",
+        "decoder_error_policy": "FFmpeg default",
+        "time_origin": "source presentation timestamp zero"
+      }
+    },
+    "extract": {
+      "name": "ffmpeg", "version": "6.1.1", "inputs": ["source"],
+      "parameters": {
+        "stream": "0:v:0", "presentation_ordinals": ["0", "3"],
+        "filter": "select=eq(n\\,0)+eq(n\\,3),format=rgb24",
+        "fps_mode": "passthrough", "output_codec": "png", "threads": 1,
+        "color_policy": "decoder_default", "resize": "none"
+      }
+    },
+    "render": {
+      "name": "ffmpeg", "version": "6.1.1", "inputs": ["first-image", "last-image"],
+      "parameters": {
+        "filter_complex": "[0:v][1:v]xstack=inputs=2:layout=0_0|162_0:fill=0x5a5a60,format=rgb24",
+        "output_codec": "png", "frames": 1, "threads": 1, "resize": "none", "color_policy": "decoder_default"
+      }
+    },
+    "select": {
+      "name": "explicit-selection", "version": "1", "inputs": ["source"],
+      "parameters": {"samples": ["first", "last"], "activity_analysis": "not_run"}
+    },
+    "describe": {
+      "name": "provided-description", "version": "1", "inputs": ["source"],
+      "parameters": {"scope": "one-second reference clip"}
+    },
+    "text": {
+      "name": "ROAMV sheet text projection", "version": "0.1.0-draft.1", "inputs": [],
+      "parameters": {"package": "reference-summary", "record_revision": "r1", "sheet": "overview"}
+    }
+  }
+}
