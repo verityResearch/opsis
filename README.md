@@ -98,23 +98,47 @@ span 7.00 world-s, 5.98 m travelled, ~1.99 m per tile
 
 ## Usage
 
-`src/RoamOpsis.cs` is the format — composition, travel sampling, manifest. It depends on
-nothing but `UnityEngine`.
+`opsis.py` is the format, and it is **standalone**: Python standard library only. No
+engine, no imaging package, no build step. It writes the PNG by hand with `zlib`, takes
+raw RGB buffers, and knows nothing about where frames came from.
 
-```csharp
-var tiles = new List<RoamOpsis.Tile> { /* image, elapsed, pos, yaw */ };
-string manifest = RoamOpsis.Compose(tiles, "out/opsis.jpg");
+```python
+import opsis
+
+tiles = [opsis.Tile(pixels=rgb_bytes, width=320, height=180,
+                    elapsed=t, pos=(x, y, z), heading=deg)
+         for ...]
+
+out = opsis.compose(tiles)
+if out.composed:
+    open("opsis.png", "wb").write(out.png)
+print(out.manifest)
 ```
 
-`src/OpsisCapture.cs` is the walk half: `MarkLook()` grabs both eyes and keeps them,
-`OpsisOfWalk()` composes one sheet per eye from the marks. It needs a head transform with
-child cameras named `EyeL` and `EyeR`; swap `RoamState.Head` for your own accessor.
+Choose which frames to use first — sampled by travel, not time:
 
-Marks are taken **deliberately, one per move** — step, look, attend. Nothing samples on a
-timer, so every tile is a moment that was chosen rather than one a clock happened to catch.
+```python
+keep = opsis.select_by_travel([t.pos for t in all_frames], max_tiles=4)
+```
 
-`RoamOpsis.SelfTest(Motion)` synthesises all four motions, so the format is provable
-without a scene.
+If it returns a single index, the observer never moved: **do not compose.** A grid of
+identical tiles looks like evidence.
+
+Prove it without any source of frames:
+
+```
+python3 opsis.py crossing     # also: sweep, approach, still
+```
+
+If those four are not distinguishable by eye in the output, the format has failed at the
+only job it has. `examples/` holds two of them.
+
+### Adapters
+
+`adapters/` holds the original Unity implementation — the same format expressed against
+`UnityEngine`, plus `OpsisCapture` for taking stereo marks during a walk. Adapters are
+optional and none of them are the format. Anything that can produce raw RGB and a
+position can drive `opsis.py` directly.
 
 ## Provenance
 
